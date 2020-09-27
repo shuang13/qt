@@ -1,0 +1,81 @@
+double t_range = maxValue - minValue;
+	if (qFuzzyCompare(t_range,0.0)) return;
+
+	for(int i = 0; i < 5; i++) {
+		myThread* threadObj = new myThread(i,w, h, vData, t_image, minValue, maxValue, colorTable);
+		QThread* Qtt = new QThread;
+		threadObj->moveToThread(Qtt);
+		connect(Qtt, SIGNAL(finished), Qtt, SLOT(deleteLater));
+		connect(Qtt, SIGNAL(finished), threadObj, SLOT(deleteLater));
+		connect(this, SIGNAL(emitsignal), threadObj, SLOT(begin));
+		Qtt->start();
+	}
+	emit emitsignal();
+
+	
+	
+//for(int i = 0; i < vData.size() - 1; i ++)
+//{
+//	vector<CPoint3> & vTrace_1 = vData[i];
+//	vector<CPoint3> & vTrace_2 = vData[ i + 1];
+//
+//	int k = 0;
+//
+//	for(int j = 0; j < vTrace_1.size() - 1; j ++)
+//	{
+//		if(vTrace_1[j].x() < -99998) continue;
+//
+//		for(; k < vTrace_2.size() - 1; k ++)
+//		{
+//			if(vTrace_2[k].x() < -99998) continue;
+//
+//
+//			CPoint3  p1 = vTrace_1[j];
+//			CPoint3  p2 = vTrace_2[k];
+//			CPoint3  p3 = vTrace_2[k + 1];
+//			CPoint3  p4 = vTrace_1[j + 1];
+//			if(p2.z() < 0) break;
+//			if(p1.z() > w - 1) break;
+//
+//			if(p4.y() < 0) break;
+//			if(p1.y()> h - 1) break;
+//
+//			if (abnormalValueFlag)
+//			{
+//				//如果一条边无效，则无法插值,确保网格至少3个点有效
+//				if(p1.x() < -99998 && p4.x() < -99998) break;
+//				if(p1.x() < -99998 && p2.x() < -99998) break;
+//				if(p2.x() < -99998 && p3.x() < -99998) break;
+//				if(p3.x() < -99998 && p4.x() < -99998) break;
+//
+//				//将三个点有效的情况转换为四个点有效
+//				if(p1.x() < -99998) p1 = p2;
+//				if(p2.x() < -99998) p2 = p1;
+//				if(p4.x() < -99998) p4 = p3;
+//				if(p3.x() < -99998) p3 = p4;
+//			}
+//			//双线性插值
+//
+//			for(int m = max(0.0,ceil(p1.z())); m <= min(w - 1.0,floor(p2.z())); m ++)
+//			{
+//				double tw = m;
+//				double th = p1.y() + (m - p1.z()) *(p2.y() - p1.y())/(p2.z() - p1.z());
+//				double tv = p1.x() + (m - p1.z()) *(p2.x() - p1.x())/(p2.z() - p1.z());
+//
+//
+//				double th_1 = p4.y() + (m - p4.z()) *(p3.y() - p4.y())/(p3.z() - p4.z());
+//				double tv_1 = p4.x() + (m - p4.z()) *(p3.x() - p4.x())/(p3.z() - p4.z());
+//
+//				for(int n = max(0.0,floor(th)); n <= min(h - 1.0,ceil(th_1)); n ++)
+//				{
+//					double v = tv + (n - th) *(tv_1 - tv)/(th_1 - th);
+//					if(v < minValue) v = minValue;
+//					if(v > maxValue) v = maxValue;
+//					t_image->setPixel(m,n,colorTable[(v-minValue)/t_range*(colorTable.size()-1)]);
+//				}
+//			}		
+//			k ++;
+//			break;
+//		}
+//	}
+//}

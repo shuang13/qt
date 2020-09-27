@@ -1,0 +1,98 @@
+for(int i = 0; i < vData.size() - 1; i++) {
+
+		vector<CPoint3> & vTrace_1 = vData[i];
+		vector<CPoint3> & vTrace_2 = vData[i + 1];
+		vector<CPoint3> & vTrace_L = vData[i];
+		vector<CPoint3> & vTrace_S = vData[i + 1];
+		int size1 = 0;
+		int size2 = 0;
+		int sizeL = 0;
+		int sizeS = 0;
+		int offset1 = vTrace_1.size();
+		int offset2 = vTrace_2.size();
+		int offsetL = vTrace_L.size();
+		int offsetS = vTrace_S.size();
+		// 统计有效数据起始点与数量
+		for(int t = 0; t < vTrace_1.size(); t++) {
+			if(vTrace_1[t].x() < -99998) continue;
+			size1++;
+			if(size1 == 1) {
+				offset1 = t;
+			}
+		}
+		for(int t = 0; t < vTrace_2.size(); t++) {
+			if(vTrace_2[t].x() < -99998) continue;
+			size2++;
+			if(size2 == 1) {
+				offset2 = t;
+			}
+		}
+
+		
+		float r = 0;
+		int diff = size1 - size2;
+
+		if(diff >= 0) {
+			vTrace_L = vTrace_1;
+			vTrace_S = vTrace_2;
+			sizeL = size1;
+			sizeS = size2;
+			offsetL = offset1;
+			offsetS = offset2;
+		} else {
+			vTrace_L = vTrace_2;
+			vTrace_S = vTrace_1;
+			sizeL = size2;
+			sizeS = size1;
+			offsetL = offset2;
+			offsetS = offset1;
+		}
+		if(sizeL <= 1) {
+			break;
+		}
+		r = (sizeS - 1) / (sizeL - 1);
+		
+		for(int k = offsetL; k < offsetL + sizeL - 1; k++) {
+			
+			CPoint3  p1 = vTrace_L[k];
+			CPoint3  p2 = vTrace_S[offsetS + floor((k - offsetL) * r + 0.5)];
+			CPoint3  p3 = vTrace_S[offsetS + floor((k - offsetL + 1) * r + 0.5)];
+			CPoint3  p4 = vTrace_L[k + 1];
+
+			if(p2.z() < 0) break;
+			if(p1.z() > w - 1) break;
+			if(p4.y() < 0) break;
+			if(p1.y() > h - 1) break;
+			
+			//双线性插值
+			if(diff < 0) {
+				CPoint3 temp;
+				temp = p1;
+				p1 = p2;
+				p2 = temp;
+				temp = p4;
+				p4 = p3;
+				p3 = temp;
+			} 
+			for(int m = max(0.0,ceil(p1.z())); m <= min(w - 1.0, floor(p2.z())); m ++)
+			{
+				double tw = m;
+				double th = p1.y() + (m - p1.z()) * (p2.y() - p1.y())/(p2.z() - p1.z());
+				double tv = p1.x() + (m - p1.z()) * (p2.x() - p1.x())/(p2.z() - p1.z());
+
+
+				double th_1 = p4.y() + (m - p4.z()) *(p3.y() - p4.y())/(p3.z() - p4.z());
+				double tv_1 = p4.x() + (m - p4.z()) *(p3.x() - p4.x())/(p3.z() - p4.z());
+
+				if((th_1 - th) == 0) break;
+				for(int n = max(0.0, floor(th)); n <= min(h - 1.0,ceil(th_1)); n ++)
+				{
+					double v = tv + (n - th) *(tv_1 - tv)/(th_1 - th);
+					if(v < minValue) v = minValue;
+					if(v > maxValue) v = maxValue;
+					t_image->setPixel(m, n, colorTable[(v-minValue)/t_range*(colorTable.size()-1)]);
+				}
+			}		
+		}
+		
+	}
